@@ -760,6 +760,11 @@ The software list is taken from https://www.gnu.org/software/."
   :group 'org-export-hugo
   :type '(repeat string))
 
+(defcustom org-hugo-auto-update-id-locations t
+  "When non-nil, update the Org ID locations with sibling org files before
+starting export."
+  :group 'org-export-hugo
+  :type 'boolean)
 
 
 ;;; Define Back-End
@@ -4908,8 +4913,11 @@ The optional argument NOERROR is passed to
 
     ;; Auto-update `org-id-locations' if it's nil or empty hash table
     ;; to avoid broken [[id:..]] type links.
-    (unless org-id-locations (org-id-locations-load))
-    (when (or (null org-id-locations) (zerop (hash-table-count org-id-locations)))
+    (when (and org-hugo-auto-update-id-locations
+               (or (null org-id-locations)
+                   (not (hash-table-p org-id-locations))
+                   (zerop (hash-table-count org-id-locations))))
+      (unless org-id-locations (org-id-locations-load))
       (org-id-update-id-locations (directory-files "." :full "\\.org$" :nosort) :silent))
 
     (org-hugo--cleanup)
